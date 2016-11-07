@@ -47,6 +47,7 @@ app.get('/', (req, res) => {
         <!doctype html>
         <html>
         <head>
+          <title>Tuck Shop</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
@@ -88,6 +89,7 @@ app.get('/topup', (req, res) => {
         <!doctype html>
         <html>
         <head>
+          <title>Tuck Shop</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
@@ -128,6 +130,7 @@ app.post('/purchase/:address', (req, res) => {
         <!doctype html>
         <html>
         <head>
+          <title>Tuck Shop</title>
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
