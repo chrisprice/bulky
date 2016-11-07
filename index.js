@@ -48,6 +48,7 @@ app.get('/', (req, res) => {
         <html>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
         <body>
           <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
@@ -94,6 +95,7 @@ app.post('/purchase/:address', (req, res) => {
         <html>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
         <body>
           <h3>Purchased ${item.name} for £${item.scottcoinPrice.toFixed(2)}</h3>
