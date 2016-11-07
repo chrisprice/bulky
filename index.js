@@ -35,7 +35,25 @@ app.use((req, res, next) => {
     })
     .catch((e) => {
       console.error(session, e);
-      res.sendStatus(403);
+      res.status(403)
+        .send(`
+          <!doctype html>
+          <html>
+          <head>
+            <title>Tuck Shop</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+          </head>
+          <body>
+            <h3>Opps</h3>
+            <p>Something went wrong</p>
+            <p><small>${session}</small></p>
+            <hr/>
+            <form action="/" method="GET">
+              <input type="submit" value="Home"/>
+            </form>
+          </body>
+          </html>`);
     });
 });
 
@@ -75,8 +93,26 @@ app.get('/', (req, res) => {
         </html>`);
     })
     .catch((e) => {
-      res.sendStatus(500);
-      console.error(e);
+      console.error(session, e);
+      res.status(500)
+        .send(`
+          <!doctype html>
+          <html>
+          <head>
+            <title>Tuck Shop</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+          </head>
+          <body>
+            <h3>Opps</h3>
+            <p>Something went wrong</p>
+            <p><small>${session}</small></p>
+            <hr/>
+            <form action="/" method="GET">
+              <input type="submit" value="Home"/>
+            </form>
+          </body>
+          </html>`);
     });
 });
 
@@ -107,8 +143,26 @@ app.get('/topup', (req, res) => {
         </html>`);
     })
     .catch((e) => {
-      res.sendStatus(500);
-      console.error(e);
+      console.error(session, e);
+      res.status(500)
+        .send(`
+          <!doctype html>
+          <html>
+          <head>
+            <title>Tuck Shop</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+          </head>
+          <body>
+            <h3>Opps</h3>
+            <p>Something went wrong</p>
+            <p><small>${session}</small></p>
+            <hr/>
+            <form action="/" method="GET">
+              <input type="submit" value="Home"/>
+            </form>
+          </body>
+          </html>`);
     });
 });
 
@@ -144,8 +198,26 @@ app.post('/purchase/:address', (req, res) => {
         </html>`);
     })
     .catch((e) => {
-      res.sendStatus(500);
-      console.error(e);
+      console.error(session, e);
+      res.status(500)
+        .send(`
+          <!doctype html>
+          <html>
+          <head>
+            <title>Tuck Shop</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+          </head>
+          <body>
+            <h3>Opps</h3>
+            <p>Something went wrong</p>
+            <p><small>${session}</small></p>
+            <hr/>
+            <form action="/" method="GET">
+              <input type="submit" value="Home"/>
+            </form>
+          </body>
+          </html>`);
     });
 });
 
