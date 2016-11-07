@@ -46,7 +46,7 @@ app.use((req, res, next) => {
           </head>
           <body>
             <h3>Opps</h3>
-            <p>Something went wrong</p>
+            <p>You're not signed up for this service yet.</p>
             <p><small>${session}</small></p>
             <hr/>
             <form action="/" method="GET">
