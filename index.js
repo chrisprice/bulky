@@ -52,6 +52,9 @@ app.get('/', (req, res) => {
         </head>
         <body>
           <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
+          <form action="topup" method="GET">
+            £ <input type="number" name="amount" value="5.00"/> <input type="submit" value="Topup"/>
+          </form>
           <hr/>
           ${
             stock.filter(item => item.inStock)
@@ -67,6 +70,37 @@ app.get('/', (req, res) => {
               )
               .join('\n')
           }
+        </body>
+        </html>`);
+    })
+    .catch((e) => {
+      res.sendStatus(500);
+      console.error(e);
+    });
+});
+
+app.get('/topup', (req, res) => {
+  const amount = req.params.amount ? Number(req.params.amount) : 5;
+  const { session, stock, wallet, user } = req.app;
+  Promise.all([wallet.balance(), wallet.address()])
+    .then(([balance, address]) => {
+      res.send(`
+        <!doctype html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="apple-mobile-web-app-capable" content="yes">
+        </head>
+        <body>
+          <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
+          <hr/>
+          <p>Show this code to someone with ScottCoins whilst crossing their palm with the appropriate amount of silver (£${amount}) and they'll top you up.</p>
+          <img width="100%" src="https://chart.googleapis.com/chart?cht=qr&chs=500x500&chl=bitcoin%3A${address}%3Famount%3D=${amount}"/>
+          <p><small>tuckshop:${address}</small></p>
+          <hr/>
+          <form action="/" method="GET">
+            <input type="submit" value="Home"/>
+          </form>
         </body>
         </html>`);
     })
