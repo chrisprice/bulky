@@ -12,7 +12,7 @@ const ms = require('ms');
 const satoshisPerBitcoin = 1e8;
 
 const configPath = process.argv[2];
-const { bws, google } = JSON.parse(readFileSync(configPath, 'utf8'));
+const { bws, google, secret } = JSON.parse(readFileSync(configPath, 'utf8'));
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -20,6 +20,9 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   const session = req.cookies.session || uuid.v4();
   res.cookie('session', session, { maxAge: ms('1Y'), httpOnly: true });
+  if (req.path.indexOf('/create') === 0) {
+    return next();
+  }
 
   Promise.all([stock({ google }).list(), users({ google }).list()])
     .then(([stock, users]) => {
@@ -222,23 +225,19 @@ app.post('/purchase/:address', (req, res) => {
     });
 });
 
-app.post('/mnemonic', (req, res) => {
-  // require session to be able to track abuse
-  const { session } = req.app;
-  console.log(`Generating random mnemonic for session ${session}`);
+app.post('/create/:secret/:name', (req, res) => {
+  const { name, session } = req.params;
+  if (req.params.secret !== secret) {
+    return res.sendStatus(403);
+  }
 
-  res.send(`
-    <!doctype html>
-    <html>
-    <head>
-      <title>Tuck Shop</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-    </head>
-    <body>
-      ${Credentials.createWithMnemonic('livenet', '', 'en', 0).getMnemonic()}
-    </body>
-    </html>`);
+  wallet.create({ bws, walletName: name })
+    .then((mnemonic) => users({ google }).insert({ name, session: '', mnemonic }))
+    .then(() => res.sendStatus(200))
+    .catch((e) => {
+      console.error(name, session, e);
+      res.sendStatus(500);
+    });
 });
 
 app.listen(3000, () => console.log('Listening on port 3000'));
