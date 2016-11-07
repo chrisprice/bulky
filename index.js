@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const wallet = require('./lib/wallet');
 const stock = require('./lib/stock');
 const users = require('./lib/users');
+const Credentials = require('bitcore-wallet-client/lib/credentials');
 const uuid = require('uuid');
 const ms = require('ms');
 
@@ -219,6 +220,25 @@ app.post('/purchase/:address', (req, res) => {
           </body>
           </html>`);
     });
+});
+
+app.post('/mnemonic', (req, res) => {
+  // require session to be able to track abuse
+  const { session } = req.app;
+  console.log(`Generating random mnemonic for session ${session}`);
+
+  res.send(`
+    <!doctype html>
+    <html>
+    <head>
+      <title>Tuck Shop</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+    </head>
+    <body>
+      ${Credentials.createWithMnemonic('livenet', '', 'en', 0).getMnemonic()}
+    </body>
+    </html>`);
 });
 
 app.listen(3000, () => console.log('Listening on port 3000'));
