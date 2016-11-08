@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
         <body>
           <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
           <form action="topup" method="GET">
-            £ <input type="number" name="amount" value="5.00"/> <input type="submit" value="Topup"/>
+            £ <input type="number" name="amount" value="5.00" min="0.01" step="0.01"/> <input type="submit" value="Topup"/>
           </form>
           <hr/>
           ${
