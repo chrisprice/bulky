@@ -40,7 +40,26 @@ app.use((req, res, next) => {
 
   const user = cache.users.find((user) => user.session === session);
   if (!user) {
-    throw new Error(`User not found.`);
+    console.warn(session, `User not found`);
+    return res.status(403)
+      .send(`
+        <!doctype html>
+        <html>
+        <head>
+          <title>Tuck Shop</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="apple-mobile-web-app-capable" content="yes">
+        </head>
+        <body>
+          <h3>Opps</h3>
+          <p>You're not signed up for this service yet.</p>
+          <p><small>${session}</small></p>
+          <hr/>
+          <form action="/" method="GET">
+            <input type="submit" value="Home"/>
+          </form>
+        </body>
+        </html>`);
   }
   const walletPromise = user ? wallet({ bws, mnemonic: user.mnemonic }) : Promise.resolve(null);
   walletPromise.then((wallet) => ({ user, wallet, stock: cache.stock, session }))
@@ -50,7 +69,7 @@ app.use((req, res, next) => {
     })
     .catch((e) => {
       console.error(session, e);
-      res.status(403)
+      res.status(500)
         .send(`
           <!doctype html>
           <html>
@@ -61,7 +80,7 @@ app.use((req, res, next) => {
           </head>
           <body>
             <h3>Opps</h3>
-            <p>You're not signed up for this service yet.</p>
+            <p>Something went wrong</p>
             <p><small>${session}</small></p>
             <hr/>
             <form action="/" method="GET">
