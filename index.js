@@ -14,6 +14,20 @@ const satoshisPerBitcoin = 1e8;
 const configPath = process.argv[2];
 const { bws, google, secret } = JSON.parse(readFileSync(configPath, 'utf8'));
 
+let cache = {
+  stock: [],
+  users: []
+};
+
+const updateCache = () => Promise.all([stock({ google }).list(), users({ google }).list()])
+  .then(([stock, users]) => {
+    cache = { stock, users };
+  })
+  .catch(console.error);
+
+updateCache();
+setInterval(updateCache, ms('10s'));
+
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -24,15 +38,12 @@ app.use((req, res, next) => {
     return next();
   }
 
-  Promise.all([stock({ google }).list(), users({ google }).list()])
-    .then(([stock, users]) => {
-      const user = users.find((user) => user.session === session);
-      if (!user) {
-        throw new Error(`User not found.`);
-      }
-      const walletPromise = user ? wallet({ bws, mnemonic: user.mnemonic }) : Promise.resolve(null);
-      return walletPromise.then((wallet) => ({ user, wallet, stock, session }));
-    })
+  const user = cache.users.find((user) => user.session === session);
+  if (!user) {
+    throw new Error(`User not found.`);
+  }
+  const walletPromise = user ? wallet({ bws, mnemonic: user.mnemonic }) : Promise.resolve(null);
+  walletPromise.then((wallet) => ({ user, wallet, stock: cache.stock, session }))
     .then((app) => {
       req.app = app;
       next();
