@@ -121,7 +121,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/topup', (req, res) => {
-  const amount = req.params.amount ? Number(req.params.amount) : 5;
+  const amount = req.query.amount ? Number(req.query.amount) : 5;
   const { session, stock, wallet, user } = req.app;
   Promise.all([wallet.balance(), wallet.address()])
     .then(([balance, address]) => {
@@ -225,8 +225,9 @@ app.post('/purchase/:address', (req, res) => {
     });
 });
 
-app.post('/create/:secret/:name', (req, res) => {
-  const { name, session } = req.params;
+app.post('/create/:secret', (req, res) => {
+  const { session } = req.params;
+  const { name } = req.query;
   if (req.params.secret !== secret) {
     return res.sendStatus(403);
   }
