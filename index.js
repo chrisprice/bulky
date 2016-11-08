@@ -86,8 +86,8 @@ app.get('/', (req, res) => {
         </head>
         <body>
           <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
-          <form action="topup" method="GET">
-            £ <input type="number" name="amount" value="5.00" min="0.01" step="0.01"/> <input type="submit" value="Topup"/>
+          <form action="transactions" method="GET">
+            <input type="submit" value="Recent Transactions"/>
           </form>
           <hr/>
           ${
@@ -104,6 +104,79 @@ app.get('/', (req, res) => {
               )
               .join('\n')
           }
+          <hr/>
+          <form action="topup" method="GET">
+            £ <input type="number" name="amount" value="5.00" min="0.01" step="0.01"/> <input type="submit" value="Topup"/>
+          </form>
+        </body>
+        </html>`);
+    })
+    .catch((e) => {
+      console.error(session, e);
+      res.status(500)
+        .send(`
+          <!doctype html>
+          <html>
+          <head>
+            <title>Tuck Shop</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+          </head>
+          <body>
+            <h3>Opps</h3>
+            <p>Something went wrong</p>
+            <p><small>${session}</small></p>
+            <hr/>
+            <form action="/" method="GET">
+              <input type="submit" value="Home"/>
+            </form>
+          </body>
+          </html>`);
+    });
+});
+
+app.get('/transactions', (req, res) => {
+  const { session, stock, wallet, user } = req.app;
+  wallet.transactions()
+    .then((rawTransactions) => {
+      const transactions = rawTransactions.map(tx => {
+        const output = tx.outputs.find(output => !output.isMine);
+        if (!output) {
+          return null;
+        }
+        const item = stock.find(item => item.address === output.address);
+        if (!item) {
+          return null;
+        }
+        return {
+          date: new Date(tx.time * 1000),
+          label: item.name,
+          quantity: Math.round(output.amount / satoshisPerBitcoin / item.scottcoinPrice)
+        };
+      })
+        .filter(tx => tx)
+        .filter((tx, i) => i < 10);
+      res.send(`
+        <!doctype html>
+        <html>
+        <head>
+          <title>Tuck Shop</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="apple-mobile-web-app-capable" content="yes">
+        </head>
+        <body>
+          <h3>Recent Transactions</h3>
+          <hr/>
+          <ul>
+          ${
+            transactions.map(tx => `<li>${tx.label} <small>${tx.date.toDateString()}</small></li>`)
+              .join('\n')
+          }
+          </ul>
+          <hr/>
+          <form action="/" method="GET">
+            <input type="submit" value="Home"/>
+          </form>
         </body>
         </html>`);
     })
