@@ -14,61 +14,53 @@ const satoshisPerBitcoin = 1e8;
 const configPath = process.argv[2];
 const { bws, google, secret } = JSON.parse(readFileSync(configPath, 'utf8'));
 
-let cache = {
-  stock: [],
-  users: []
+const services = {
+  users: users({ clientEmail: google.client_email, privateKey: google.private_key }),
+  stock: stock({ clientEmail: google.client_email, privateKey: google.private_key })
 };
-
-const updateCache = () => Promise.all([stock({ google }).list(), users({ google }).list()])
-  .then(([stock, users]) => {
-    cache = { stock, users };
-  })
-  .catch(console.error);
-
-updateCache();
-setInterval(updateCache, ms('10s'));
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use((req, res, next) => {
-  const session = req.cookies.session || uuid.v4();
-  res.cookie('session', session, { maxAge: ms('1Y'), httpOnly: true });
+  req.session = req.cookies.session || uuid.v4();
+  res.cookie('session', req.session, { maxAge: ms('1Y'), httpOnly: true });
   if (req.path.indexOf('/create') === 0) {
     return next();
   }
-
-  const user = cache.users.find((user) => user.session === session);
-  if (!user) {
-    console.warn(session, `User not found`);
-    return res.status(403)
-      .send(`
-        <!doctype html>
-        <html>
-        <head>
-          <title>Tuck Shop</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <meta name="apple-mobile-web-app-capable" content="yes">
-        </head>
-        <body>
-          <h3>Opps</h3>
-          <p>You're not signed up for this service yet.</p>
-          <p><small>${session}</small></p>
-          <hr/>
-          <form action="/" method="GET">
-            <input type="submit" value="Home"/>
-          </form>
-        </body>
-        </html>`);
-  }
-  const walletPromise = user ? wallet({ bws, mnemonic: user.mnemonic }) : Promise.resolve(null);
-  walletPromise.then((wallet) => ({ user, wallet, stock: cache.stock, session }))
-    .then((app) => {
-      req.app = app;
-      next();
+  services.users.list()
+    .then((users) => {
+      req.user = users.find((user) => user.session === req.session);
+      if (!req.user) {
+        console.warn(req.session, `User not found`);
+        return res.status(403)
+          .send(`
+            <!doctype html>
+            <html>
+            <head>
+              <title>Tuck Shop</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <meta name="apple-mobile-web-app-capable" content="yes">
+            </head>
+            <body>
+              <h3>Opps</h3>
+              <p>You're not signed up for this service yet.</p>
+              <p><small>${req.session}</small></p>
+              <hr/>
+              <form action="/" method="GET">
+                <input type="submit" value="Home"/>
+              </form>
+            </body>
+            </html>`);
+      }
+      return wallet({ bws, mnemonic: req.user.mnemonic })
+        .then((wallet) => {
+          req.wallet = wallet;
+          next();
+        });
     })
     .catch((e) => {
-      console.error(session, e);
+      console.error(req.session, e);
       res.status(500)
         .send(`
           <!doctype html>
@@ -81,7 +73,7 @@ app.use((req, res, next) => {
           <body>
             <h3>Opps</h3>
             <p>Something went wrong</p>
-            <p><small>${session}</small></p>
+            <p><small>${req.session}</small></p>
             <hr/>
             <form action="/" method="GET">
               <input type="submit" value="Home"/>
@@ -92,9 +84,9 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  const { session, stock, wallet, user } = req.app;
-  wallet.balance()
-    .then((balance) => {
+  const { session, wallet, user } = req;
+  Promise.all([req.wallet.balance(), services.stock.list()])
+    .then(([balance, stock]) => {
       res.send(`
         <!doctype html>
         <html>
@@ -155,9 +147,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/transactions', (req, res) => {
-  const { session, stock, wallet, user } = req.app;
-  wallet.transactions()
-    .then((rawTransactions) => {
+  const { session, wallet, user } = req;
+  Promise.all([req.wallet.transactions(), services.stock.list()])
+    .then(([rawTransactions, stock]) => {
       const transactions = rawTransactions.map(tx => {
         const output = tx.outputs.find(output => !output.isMine);
         if (!output) {
@@ -225,8 +217,8 @@ app.get('/transactions', (req, res) => {
 
 app.get('/topup', (req, res) => {
   const amount = req.query.amount ? Number(req.query.amount) : 5;
-  const { session, stock, wallet, user } = req.app;
-  Promise.all([wallet.balance(), wallet.address()])
+  const { session, wallet, user } = req;
+  Promise.all([req.wallet.balance(), req.wallet.address()])
     .then(([balance, address]) => {
       res.send(`
         <!doctype html>
@@ -280,13 +272,16 @@ app.post('/purchase/:address', (req, res) => {
   }
 
   const { address } = req.params;
-  const { session, wallet, stock } = req.app;
+  const { session, wallet } = req.app;
 
-  const item = stock.find(item => item.address === address);
-  const amountSatoshis = Math.round(item.scottcoinPrice * satoshisPerBitcoin);
-
-  wallet.send({ address, amount: amountSatoshis })
-    .then(() => {
+  services.stock.list()
+    .then((stock) => stock.find(item => item.address === address))
+    .then((item) => {
+      const amountSatoshis = Math.round(item.scottcoinPrice * satoshisPerBitcoin);
+      return req.wallet.send({ address, amount: amountSatoshis })
+        .then(() => item);
+    })
+    .then((item) => {
       res.send(`
         <!doctype html>
         <html>
