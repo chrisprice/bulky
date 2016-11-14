@@ -85,6 +85,12 @@ app.use((req, res, next) => {
 
 app.get('/', (req, res) => {
   const { session, wallet, user } = req;
+
+  const formatPrice = (number) => {
+    const str = number.toFixed(6);
+    return `£${str.substring(0, str.length - 4)}<small><small><small>${str.substring(str.length - 4)}</small></small></small>`;
+  };
+
   Promise.all([req.wallet.balance(), services.stock.list()])
     .then(([balance, stock]) => {
       res.send(`
@@ -96,7 +102,7 @@ app.get('/', (req, res) => {
           <meta name="apple-mobile-web-app-capable" content="yes">
         </head>
         <body>
-          <h3>${user.name} £${(balance.availableAmount / satoshisPerBitcoin).toFixed(2)}</h3>
+          <h3>${user.name} ${formatPrice(balance.availableAmount / satoshisPerBitcoin)}</h3>
           <form action="transactions" method="GET">
             <input type="submit" value="Recent Transactions"/>
           </form>
@@ -108,8 +114,8 @@ app.get('/', (req, res) => {
                   <input type="hidden" name="session" value="${session}"/>
                   <h3>${item.name}</h3>
                   <ul>
-                    <li>£${item.scottcoinPrice.toFixed(2)}</li>
-                    <li><input type="submit" value="Purchase"/></li>
+                    <li>${formatPrice(item.scottcoinPrice)}</li>
+                    <li><input type="submit" value="Purchase"${item.scottcoinPrice < balance.availableAmount ? 'disabled' : ''}/></li>
                   </ul>
                 </form>`
               )
