@@ -323,20 +323,12 @@ app.post('/purchase/:address', (req, res) => {
     });
 });
 
-app.post('/create/:secret', (req, res) => {
-  const { session } = req.params;
-  const { name } = req.query;
+app.get('/mnemonic/:secret', (req, res) => {
   if (req.params.secret !== secret) {
     return res.sendStatus(403);
   }
 
-  wallet.create({ bws, walletName: name })
-    .then((mnemonic) => users({ google }).insert({ name, session: '', mnemonic }))
-    .then(() => res.sendStatus(200))
-    .catch((e) => {
-      console.error(name, session, e);
-      res.sendStatus(500);
-    });
+  res.send(Credentials.createWithMnemonic('livenet', '', 'en', 0));
 });
 
 app.listen(3000, () => console.log('Listening on port 3000'));
