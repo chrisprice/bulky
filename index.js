@@ -25,7 +25,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   req.session = req.cookies.session || uuid.v4();
   res.cookie('session', req.session, { maxAge: ms('1Y'), httpOnly: true });
-  if (req.path.indexOf('/create') === 0) {
+  if (req.path.indexOf('/mnemonic') === 0) {
     return next();
   }
   services.users.list()
