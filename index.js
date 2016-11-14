@@ -109,16 +109,17 @@ app.get('/', (req, res) => {
           <hr/>
           ${
             stock.filter(item => item.inStock)
-              .map(item => `
-                <form action="purchase/${item.address}" method="POST">
+              .map(item => {
+                const available = item.scottcoinPrice > (balance.availableAmount / satoshisPerBitcoin);
+                return `<form action="purchase/${item.address}" method="POST">
                   <input type="hidden" name="session" value="${session}"/>
                   <h3>${item.name}</h3>
                   <ul>
                     <li>${formatPrice(item.scottcoinPrice)}</li>
-                    <li><input type="submit" value="Purchase"${item.scottcoinPrice < balance.availableAmount ? 'disabled' : ''}/></li>
+                    <li><input type="submit" value="Purchase"${available ? ' disabled' : ''}/></li>
                   </ul>
-                </form>`
-              )
+                </form>`;
+              })
               .join('\n')
           }
           <hr/>
