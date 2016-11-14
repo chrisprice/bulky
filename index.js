@@ -162,7 +162,8 @@ app.get('/transactions', (req, res) => {
         return {
           date: new Date(tx.time * 1000),
           label: item.name,
-          quantity: Math.round(output.amount / satoshisPerBitcoin / item.scottcoinPrice)
+          quantity: Math.round(output.amount / satoshisPerBitcoin / item.scottcoinPrice),
+          scottcoinPrice: item.scottcoinPrice
         };
       })
         .filter(tx => tx)
@@ -180,7 +181,7 @@ app.get('/transactions', (req, res) => {
           <hr/>
           <ul>
           ${
-            transactions.map(tx => `<li>${tx.label} <small>${tx.date.toDateString()}</small></li>`)
+            transactions.map(tx => `<li>${tx.label} <marquee><blink>${tx.scottcoinPrice}</blink></marquee> <small>${tx.date.toDateString()}</small></li>`)
               .join('\n')
           }
           </ul>
