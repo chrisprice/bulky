@@ -10,6 +10,7 @@ const Credentials = require('bitcore-wallet-client/lib/credentials');
 const uuid = require('uuid');
 const ms = require('ms');
 const path = require('path');
+const crypto = require('crypto');
 
 const satoshisPerBitcoin = 1e8;
 
@@ -30,7 +31,10 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   req.session = req.cookies.session || uuid.v4();
   res.cookie('session', req.session, { maxAge: ms('1Y'), httpOnly: true });
-  if (req.path.indexOf('/mnemonic') === 0) {
+  req.signature = crypto.createHmac('sha256', secret)
+    .update(req.session)
+    .digest('hex');
+  if (req.path.indexOf('/mnemonic') === 0 || req.path.indexOf('/session') === 0) {
     return next();
   }
   services.users.list()
@@ -59,10 +63,10 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-  const { session, wallet, user, balance } = req;
+  const { session, wallet, user, balance, signature } = req;
   services.stock.list()
     .then((stock) => {
-      res.render('home', { session, wallet, user, balance, stock });
+      res.render('home', { session, wallet, user, balance, stock, signature });
     })
     .catch((e) => {
       console.error(session, e);
@@ -149,6 +153,17 @@ app.get('/mnemonic/:secret', (req, res) => {
   }
 
   res.send(Credentials.createWithMnemonic('livenet', '', 'en', 0));
+});
+
+app.get('/session/:session/:signature', (req, res) => {
+  const { session, signature } = req.params;
+  const validate = crypto.createHmac('sha256', secret)
+    .update(session)
+    .digest('hex');
+  if (validate === signature) {
+    res.cookie('session', session, { maxAge: ms('1Y'), httpOnly: true });
+  }
+  res.sendStatus(200);
 });
 
 app.listen(3000, () => console.log('Listening on port 3000'));
