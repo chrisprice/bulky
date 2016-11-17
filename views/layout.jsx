@@ -9,24 +9,17 @@ module.exports = ({ children, session, balance, user }) => (
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <style>
     {`
-      button {
+      header div {
         overflow: hidden;
       }
-      button h1 {
-        animation: spin 1s linear infinite;
+      header div h1 {
+        text-align: center;
       }
-      @keyframes spin {
-        33% {
-          transform:rotateX(360deg);
-        }
-        50% {
-          transform:rotateY(360deg);
-        }
-        75% {
-          transform:rotateZ(360deg);
-        }
+      header div h1 a {
+        color: black;
+        text-decoration: none;
       }
-      button p {
+      header div p {
         animation: scroll 5s linear infinite;
       }
       @keyframes scroll {
@@ -42,12 +35,10 @@ module.exports = ({ children, session, balance, user }) => (
   </head>
   <body>
     <header>
-      <form action="/" method="GET">
-        <button type="submit">
-          <h1>Bulky</h1>
-          <p><small>Powered By Scottcoin</small></p>
-        </button>
-      </form>
+      <div>
+        <h1><a href="/">Bulky</a></h1>
+        <p><small>Powered By Scottcoin</small></p>
+      </div>
       {
         user != null && balance != null && (
           <form action="/transactions" method="GET">
