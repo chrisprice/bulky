@@ -9,9 +9,13 @@
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
     "express": "^4.14.0",
+    "express-react-views": "^0.10.2",
     "google-auth-library": "^0.9.9",
+    "moment": "^2.16.0",
     "ms": "^0.7.2",
     "node-fetch": "^1.6.3",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
     "uuid": "^2.0.3"
   },
   "devDependencies": {
