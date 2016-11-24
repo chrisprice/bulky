@@ -6,6 +6,7 @@ const expressReactViews = require('express-react-views');
 const wallet = require('./lib/wallet');
 const stock = require('./lib/stock');
 const users = require('./lib/users');
+const countstock = require('./lib/countstock');
 const Credentials = require('bitcore-wallet-client/lib/credentials');
 const uuid = require('uuid');
 const ms = require('ms');
@@ -70,6 +71,7 @@ app.get('/', (req, res) => {
   const { session, wallet, user, balance, signature } = req;
   services.stock.list()
     .then((stock) => stock.filter(item => item.inStock))
+    .then(countstock)
     .then((stock) => {
       res.render('home', { session, wallet, user, balance, stock, signature });
     })

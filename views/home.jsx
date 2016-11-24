@@ -10,7 +10,9 @@ const Item = ({ item, session, balance }) => {
       <input type="hidden" name="session" value={session}/>
       <p>
         <button type="submit" disabled={disabled}>
-          {item.name}{' - '}
+          {item.name}
+          {' ('}{item.multipackQuantity - item.purchaseCount}{')'}
+          {' - '}
           <Price priceInScottcoins={item.scottcoinPrice}/>
         </button>
       </p>
