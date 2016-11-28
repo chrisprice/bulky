@@ -28,6 +28,7 @@ app.set('view engine', 'jsx');
 app.engine('jsx', expressReactViews.createEngine());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(express.static('public'));
 app.use((req, res, next) => {
   req.session = req.cookies.session || uuid.v4();
   res.cookie('session', req.session, { maxAge: ms('1Y'), httpOnly: true });
@@ -35,6 +36,9 @@ app.use((req, res, next) => {
     .update(req.session)
     .digest('hex');
   if (req.path.indexOf('/mnemonic') === 0 || req.path.indexOf('/session') === 0) {
+    return next();
+  }
+  if (req.path.match(/\.(?:png|xml|ico|json)$/)) {
     return next();
   }
   services.users.list()
