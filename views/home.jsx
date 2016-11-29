@@ -22,8 +22,7 @@ module.exports = ({ stock, balance, user, session, signature }) => (
   <Layout session={session} balance={balance} user={user}>
     <h3>Purchase</h3>
     {
-      stock.filter(item => item.inStock)
-        .map(item => <Item item={item} session={session} key={item.address} balance={balance}/>)
+      stock.map(item => <Item item={item} session={session} key={item.address} balance={balance}/>)
     }
     <iframe src={`https://honesty.store/session/${session}/${signature}`} style={{ display: 'none' }}/>
   </Layout>

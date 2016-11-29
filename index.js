@@ -69,6 +69,7 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   const { session, wallet, user, balance, signature } = req;
   services.stock.list()
+    .then((stock) => stock.filter(item => item.inStock))
     .then((stock) => {
       res.render('home', { session, wallet, user, balance, stock, signature });
     })
